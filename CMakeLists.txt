@@ -44,10 +44,47 @@ else()
   set(THREAD_LOCAL "__thread")
 endif()
 
-# Generate config headers
-configure_file(src/jconfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/jconfig.h)
-configure_file(src/jconfigint.h.in ${CMAKE_CURRENT_BINARY_DIR}/jconfigint.h)
-configure_file(src/jversion.h.in ${CMAKE_CURRENT_BINARY_DIR}/jversion.h)
+# Generate config headers directly
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/jconfig.h "
+#ifndef JCONFIG_H
+#define JCONFIG_H
+#define JPEG_LIB_VERSION ${JPEG_LIB_VERSION}
+#define JPEG_LIB_VERSION_MAJOR 6
+#define JPEG_LIB_VERSION_MINOR 2
+#define LIBJPEG_TURBO_VERSION ${VERSION}
+#define LIBJPEG_TURBO_VERSION_NUMBER 3001002
+#define C_ARITH_CODING_SUPPORTED ${WITH_ARITH_ENC}
+#define D_ARITH_CODING_SUPPORTED ${WITH_ARITH_DEC}
+#define MEM_SRCDST_SUPPORTED 1
+#ifndef BITS_IN_JSAMPLE
+#define BITS_IN_JSAMPLE 8
+#endif
+#define FALLTHROUGH
+#define HIDDEN
+#define HAVE_PROTOTYPES 1
+#define HAVE_UNSIGNED_CHAR 1
+#define HAVE_UNSIGNED_SHORT 1
+#define HAVE_STDDEF_H 1
+#define HAVE_STDLIB_H 1
+#endif
+")
+
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/jconfigint.h "
+#ifndef JCONFIGINT_H
+#define JCONFIGINT_H
+#define BUILD \"${VERSION}\"
+#define INLINE ${INLINE}
+#define PACKAGE_NAME \"libjpeg-turbo\"
+#define VERSION \"${VERSION}\"
+#define SIZEOF_SIZE_T ${CMAKE_SIZEOF_VOID_P}
+#endif
+")
+
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/jversion.h "
+#define JVERSION \"${VERSION}\"
+#define JCOPYRIGHT \"Copyright (C) 2009-2025 D. R. Commander\"
+#define JCOPYRIGHT_SHORT \"Copyright (C) 1991-2025 The libjpeg-turbo Project and many others\"
+")
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
