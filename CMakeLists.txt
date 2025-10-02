@@ -56,6 +56,7 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/jconfig.h "
 #define C_ARITH_CODING_SUPPORTED ${WITH_ARITH_ENC}
 #define D_ARITH_CODING_SUPPORTED ${WITH_ARITH_DEC}
 #define MEM_SRCDST_SUPPORTED 1
+#define THREAD_LOCAL
 #ifndef BITS_IN_JSAMPLE
 #define BITS_IN_JSAMPLE 8
 #endif
@@ -140,6 +141,9 @@ endif()
 if(WITH_ARITH_DEC)
   list(APPEND JPEG_SOURCES src/jdarith.c)
 endif()
+
+list(APPEND JPEG_SOURCES src/turbojpeg.c)
+
 
 # Build static library
 if(ENABLE_STATIC)
