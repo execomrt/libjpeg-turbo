@@ -1,3 +1,46 @@
+﻿# libjpeg-turbo (minimal branch)
+
+This branch is a **minimalized fork** of [libjpeg-turbo](https://github.com/libjpeg-turbo/libjpeg-turbo) designed for easy embedding into larger CMake-based projects.
+
+## Why this branch?
+
+- ✅ **Compatibility with FetchContent**
+  - Can be pulled directly via `FetchContent_Declare()` without polluting the parent project.
+  - Provides a clean `jpeg-static` target (and optional `libjpeg-turbo::jpeg` alias) that downstream projects can just `target_link_libraries()`.
+
+- ✅ **Minimal code footprint**
+  - Only the core `libjpeg` and `turbojpeg` APIs are included.
+  - Optional helpers (BMP/PPM readers/writers) are gated by a build option (`TJ_WITH_IO`).
+  - No extra tools, no executables unless explicitly enabled.
+
+- ✅ **No SIMD (sorry!)**
+  - For simplicity and portability, this branch disables SIMD optimizations (no NASM/ARM intrinsics needed).
+  - That makes it slower than upstream, but easier to build everywhere (Windows, macOS, Linux, iOS, Android).
+  - You can enable SIMD later if you want parity with upstream performance.
+
+- ✅ **Added link tests**
+  - Small test programs included:
+    - `ljt_link_test` — validates the **classic libjpeg API** (encode/decode in memory).
+    - `turbojpeg_test` — validates the **TurboJPEG API** (`tjCompress2` / `tjDecompress2`).
+  - Both run in-memory (no files) and are hooked into CTest for CI sanity checks.
+
+## Usage
+
+Example with `FetchContent`:
+
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+  libjpeg_turbo
+  GIT_REPOSITORY https://github.com/YOUR_FORK/libjpeg-turbo.git
+  GIT_TAG        minimal
+)
+FetchContent_MakeAvailable(libjpeg_turbo)
+
+target_link_libraries(my_app PRIVATE jpeg-static)
+
+
 Background
 ==========
 
