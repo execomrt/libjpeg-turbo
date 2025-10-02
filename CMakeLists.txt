@@ -15,6 +15,29 @@ endif()
 option(ENABLE_STATIC "Build static libraries" ON)
 option(WITH_ARITH_ENC "Include arithmetic encoding" ON)
 option(WITH_ARITH_DEC "Include arithmetic decoding" ON)
+option(PPM_SUPPORTED "Support PPM image format" ON) # Enabled by default
+option(PGM_SUPPORTED "Support PGM image format" OFF)
+option(BMP_SUPPORTED "Support BMP image format" ON)
+option(RLE_SUPPORTED "Support RLE image format" OFF)
+option(TARGA_SUPPORTED "Support Targa image format" OFF)
+
+
+if (PPM_SUPPORTED)
+add_definitions(-DPPM_SUPPORTED)
+endif()
+if (PGM_SUPPORTED)
+add_definitions(-DPGM_SUPPORTED)
+endif()
+if (BMP_SUPPORTED)
+add_definitions(-DBMP_SUPPORTED)
+endif()
+if (RLE_SUPPORTED)
+add_definitions(-DRLE_SUPPORTED)
+endif()
+if (TARGA_SUPPORTED)
+add_definitions(-DTARGA_SUPPORTED)
+endif()
+
 
 # Configuration
 include(CheckIncludeFiles)
@@ -62,6 +85,8 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/jconfig.h "
 #endif
 #define FALLTHROUGH
 #define HIDDEN
+#define PPM_SUPPORTED 1
+#define BMP_SUPPORTED 1
 #define HAVE_PROTOTYPES 1
 #define HAVE_UNSIGNED_CHAR 1
 #define HAVE_UNSIGNED_SHORT 1
@@ -73,6 +98,8 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/jconfig.h "
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/jconfigint.h "
 #ifndef JCONFIGINT_H
 #define JCONFIGINT_H
+#define PPM_SUPPORTED 1
+#define BMP_SUPPORTED 1
 #define BUILD \"${VERSION}\"
 #define INLINE ${INLINE}
 #define PACKAGE_NAME \"libjpeg-turbo\"
@@ -142,7 +169,21 @@ if(WITH_ARITH_DEC)
   list(APPEND JPEG_SOURCES src/jdarith.c)
 endif()
 
-list(APPEND JPEG_SOURCES src/turbojpeg.c)
+# TurboJPEG API + helpers (add all of these)
+list(APPEND JPEG_SOURCES
+  src/turbojpeg.c
+  src/transupp.c
+  src/jdatadst-tj.c
+  src/jdatasrc-tj.c
+  src/rdbmp.c
+  src/wrbmp.c
+  src/wrapper/rdppm-8.c
+  src/wrapper/rdppm-12.c
+  src/wrapper/rdppm-16.c
+  src/wrapper/wrppm-8.c
+  src/wrapper/wrppm-12.c
+  src/wrapper/wrppm-16.c
+)
 
 
 # Build static library
@@ -189,4 +230,21 @@ if(NOT LIBJPEG_TURBO_IS_SUBPROJECT)
     NAMESPACE libjpeg-turbo::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libjpeg-turbo
   )
+endif()
+
+
+option(LJT_BUILD_TURBOJPEG_TEST "Build a tiny TurboJPEG API test" ON)
+
+if (LJT_BUILD_TURBOJPEG_TEST)
+  add_executable(turbojpeg_test test/turbojpeg_test.c)
+
+  # Link against the same jpeg-static (you built turbojpeg.c into it)
+  target_link_libraries(turbojpeg_test PRIVATE jpeg-static)
+
+  target_include_directories(turbojpeg_test PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+
+  add_test(NAME turbojpeg_api_test COMMAND turbojpeg_test)
 endif()
